@@ -51,6 +51,7 @@ retry:
     CMP SI, 5       ; SIと5を比較
     JAE error       ; SI >= 5ならエラー
     MOV AH, 0x00
+    MOV DL, 0x00    ; Aドライブ
     INT 0x13        ; ドライブのリセット
     JMP retry
 
