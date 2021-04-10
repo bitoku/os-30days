@@ -2,6 +2,9 @@ IPL			= ipl
 ASMHEAD		= asmhead
 BASE		= haribote
 BUILD_DIR	= build
+NASKFUNC	= naskfunc
+NASKFUNC_NAS	= $(NASKFUNC).nas
+NASKFUNC_O	= $(NASKFUNC).o
 IPL_NAME	= $(IPL).nas
 ASMHEAD_NAS = $(ASMHEAD).nas
 BOOTPACK	= bootpack
@@ -25,6 +28,9 @@ $(BIN_NAME): $(IPL_NAME) $(BUILD_DIR)
 
 $(ASMHEAD_BIN): $(ASMHEAD_NAS) $(BUILD_DIR)
 	nasm $(ASMHEAD_NAS) -o $(ASMHEAD_BIN)
+
+$(NASKFUNC_O): $(NASKFUNC_NAS)
+	nasm -g -f elf $(NASKFUNC_NAS) -o $(NASKFUNC_O)
 
 $(BOOTPACK_HRB): $(BOOTPACK_SRC)
 	i386-elf-gcc -march=i486 -m32 -nostdlib -T hrb.ld $(BOOTPACK_SRC) -o $(BOOTPACK_HRB)
