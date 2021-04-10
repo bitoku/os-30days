@@ -1,9 +1,9 @@
 IPL			= ipl
-BASE_NAME	= haribote
+ASMHEAD		= asmhead
 BUILD_DIR	= build
 IPL_NAME	= $(IPL).nas
-OS_MAIN		= $(BASE_NAME).nas
-SYS_NAME	= $(BUILD_DIR)/$(BASE_NAME).sys
+OS_MAIN		= $(ASMHEAD).nas
+SYS_NAME	= $(BUILD_DIR)/$(ASMHEAD).sys
 IMAGE_NAME	= $(BUILD_DIR)/$(IPL).img
 BIN_NAME	= $(BUILD_DIR)/$(IPL).bin
 
