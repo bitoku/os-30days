@@ -38,7 +38,7 @@ entry:
     MOV DH, 0       ; ヘッド0
     MOV CL, 2       ; セクタ2
 
-readloop
+readloop:
     MOV SI, 0
 retry:
     MOV AH, 0x02    ; AH=0x02 : ディスク読み込み

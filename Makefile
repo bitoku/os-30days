@@ -4,7 +4,7 @@ BASE		= haribote
 BUILD_DIR	= build
 NASKFUNC	= naskfunc
 NASKFUNC_NAS	= $(NASKFUNC).nas
-NASKFUNC_O	= $(NASKFUNC).o
+NASKFUNC_O	= $(BUILD_DIR)/$(NASKFUNC).o
 IPL_NAME	= $(IPL).nas
 ASMHEAD_NAS = $(ASMHEAD).nas
 BOOTPACK	= bootpack
@@ -32,8 +32,8 @@ $(ASMHEAD_BIN): $(ASMHEAD_NAS) $(BUILD_DIR)
 $(NASKFUNC_O): $(NASKFUNC_NAS)
 	nasm -g -f elf $(NASKFUNC_NAS) -o $(NASKFUNC_O)
 
-$(BOOTPACK_HRB): $(BOOTPACK_SRC)
-	i386-elf-gcc -march=i486 -m32 -nostdlib -T hrb.ld $(BOOTPACK_SRC) -o $(BOOTPACK_HRB)
+$(BOOTPACK_HRB): $(BOOTPACK_SRC) $(NASKFUNC_O)
+	i386-elf-gcc -march=i486 -m32 -nostdlib -T hrb.ld -g $(BOOTPACK_SRC) $(NASKFUNC_O) -o $(BOOTPACK_HRB)
 
 $(SYS_NAME): $(ASMHEAD_BIN) $(BOOTPACK_HRB)
 	cat $(ASMHEAD_BIN) $(BOOTPACK_HRB) > $(SYS_NAME)
