@@ -27,16 +27,30 @@ void boxfill8(unsigned char *vram, int xsize, unsigned char c, int x0, int y0, i
 
 void HariMain(void)
 {
-    int i;
-    char *p; // BYTE [..]
+    char *vram;
+    int xsize, ysize;
 
     init_palette();
+    vram = (char *) 0xa0000;
+    xsize = 320;
+    ysize = 200;
 
-    p = (char *)0xa0000;
+    boxfill8(vram, xsize, COL8_008484,  0,         0,          xsize -  1, ysize - 29);
+    boxfill8(vram, xsize, COL8_C6C6C6,  0,         ysize - 28, xsize -  1, ysize - 28);
+    boxfill8(vram, xsize, COL8_FFFFFF,  0,         ysize - 27, xsize -  1, ysize - 27);
+    boxfill8(vram, xsize, COL8_C6C6C6,  0,         ysize - 26, xsize -  1, ysize -  1);
 
-    boxfill8(p, 320, COL8_FF0000, 20, 20, 120, 120);
-    boxfill8(p, 320, COL8_00FF00, 70, 50, 170, 150);
-    boxfill8(p, 320, COL8_0000FF, 120, 80, 220, 180);
+    boxfill8(vram, xsize, COL8_FFFFFF,  3,         ysize - 24, 59,         ysize - 24);
+    boxfill8(vram, xsize, COL8_FFFFFF,  2,         ysize - 24,  2,         ysize -  4);
+    boxfill8(vram, xsize, COL8_848484,  3,         ysize -  4, 59,         ysize -  4);
+    boxfill8(vram, xsize, COL8_848484, 59,         ysize - 23, 59,         ysize -  5);
+    boxfill8(vram, xsize, COL8_000000,  2,         ysize -  3, 59,         ysize -  3);
+    boxfill8(vram, xsize, COL8_000000, 60,         ysize - 24, 60,         ysize -  3);
+
+    boxfill8(vram, xsize, COL8_848484, xsize - 47, ysize - 24, xsize -  4, ysize - 24);
+    boxfill8(vram, xsize, COL8_848484, xsize - 47, ysize - 23, xsize - 47, ysize -  4);
+    boxfill8(vram, xsize, COL8_FFFFFF, xsize - 47, ysize -  3, xsize -  4, ysize -  3);
+    boxfill8(vram, xsize, COL8_FFFFFF, xsize -  3, ysize - 24, xsize -  3, ysize -  3);
 
     for (;;) {
         io_hlt();
@@ -45,21 +59,22 @@ void HariMain(void)
 
 void init_palette(void) {
     static unsigned char table_rgb[16 * 3] = {
-            0x00, 0x00, 0x00, // black
-            0xff, 0x00, 0x00, // bright red
-            0x00, 0xff, 0x00, // bright green
-            0xff, 0xff, 0x00, // bright yellow
-            0x00, 0x00, 0xff, // bright blue
-            0xff, 0x00, 0xff, // bright purple
-            0x00, 0xff, 0xff, // bright cyan
-            0xff, 0xff, 0xff, // white
-            0x84, 0x00, 0x00, // dark red
-            0x00, 0x84, 0x00, // dark green
-            0x84, 0x84, 0x00, // dark yellow
-            0x00, 0x00, 0x84, // dark blue
-            0x84, 0x00, 0x84, // dark purple
-            0x00, 0x84, 0x84, // dark cyan
-            0x84, 0x84, 0x84, // dark grey
+            0x00, 0x00, 0x00, // 0: black
+            0xff, 0x00, 0x00, // 1: bright red
+            0x00, 0xff, 0x00, // 2: bright green
+            0xff, 0xff, 0x00, // 3: bright yellow
+            0x00, 0x00, 0xff, // 4: bright blue
+            0xff, 0x00, 0xff, // 5: bright purple
+            0x00, 0xff, 0xff, // 6: bright cyan
+            0xff, 0xff, 0xff, // 7: white
+            0xc6, 0xc6, 0xc6, // 8: bright grey
+            0x84, 0x00, 0x00, // 9: dark red
+            0x00, 0x84, 0x00, // 10: dark green
+            0x84, 0x84, 0x00, // 11: dark yellow
+            0x00, 0x00, 0x84, // 12: dark blue
+            0x84, 0x00, 0x84, // 13: dark purple
+            0x00, 0x84, 0x84, // 14: dark cyan
+            0x84, 0x84, 0x84, // 15: dark grey
     };
     set_palette(0, 15, table_rgb);
     return;
