@@ -8,7 +8,11 @@ NASKFUNC_O	= $(BUILD_DIR)/$(NASKFUNC).o
 IPL_NAME	= $(IPL).nas
 ASMHEAD_NAS = $(ASMHEAD).nas
 BOOTPACK	= bootpack
+HANKAKU		= hankaku.txt
+CONV_HANKAKU	= convHankaku.c
 BOOTPACK_SRC	= $(BOOTPACK).c
+CONV_HANKAKU_O	= $(BUILD_DIR)/$(CONV_HANKAKU).o
+HANKAKU_C		= $(BUILD_DIR)/$(HANKAKU).c
 BOOTPACK_HRB	= $(BUILD_DIR)/$(BOOTPACK).hrb
 ASMHEAD_BIN	= $(BUILD_DIR)/$(ASMHEAD).bin
 IMAGE_NAME	= $(BUILD_DIR)/$(IPL).img
@@ -19,6 +23,12 @@ BIN_NAME	= $(BUILD_DIR)/$(IPL).bin
 
 boot: $(IMAGE_NAME)
 	qemu-system-i386 -drive file=$(IMAGE_NAME),format=raw,if=floppy -boot a
+
+$(CONV_HANKAKU_O): $(CONV_HANKAKU)
+	gcc $(CONV_HANKAKU) -o $(CONV_HANKAKU_O)
+
+$(HANKAKU_C): $(CONV_HANKAKU_O) $(HANKAKU)
+	./$(CONV_HANKAKU_O) $(HANKAKU) $(HANKAKU_C)
 
 $(BUILD_DIR):
 	mkdir -p $(BUILD_DIR)
@@ -32,8 +42,8 @@ $(ASMHEAD_BIN): $(ASMHEAD_NAS) $(BUILD_DIR)
 $(NASKFUNC_O): $(NASKFUNC_NAS)
 	nasm -g -f elf $(NASKFUNC_NAS) -o $(NASKFUNC_O)
 
-$(BOOTPACK_HRB): $(BOOTPACK_SRC) $(NASKFUNC_O)
-	i386-elf-gcc -march=i486 -m32 -nostdlib -T hrb.ld -g $(BOOTPACK_SRC) $(NASKFUNC_O) -o $(BOOTPACK_HRB)
+$(BOOTPACK_HRB): $(BOOTPACK_SRC) $(HANKAKU_C) $(NASKFUNC_O)
+	i386-elf-gcc -march=i486 -m32 -nostdlib -T hrb.ld -g $(BOOTPACK_SRC) $(NASKFUNC_O) $(HANKAKU_C) -o $(BOOTPACK_HRB)
 
 $(SYS_NAME): $(ASMHEAD_BIN) $(BOOTPACK_HRB)
 	cat $(ASMHEAD_BIN) $(BOOTPACK_HRB) > $(SYS_NAME)
