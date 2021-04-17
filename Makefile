@@ -43,7 +43,7 @@ $(NASKFUNC_O): $(NASKFUNC_NAS)
 	nasm -g -f elf $(NASKFUNC_NAS) -o $(NASKFUNC_O)
 
 $(BOOTPACK_HRB): $(BOOTPACK_SRC) $(HANKAKU_C) $(NASKFUNC_O)
-	i386-elf-gcc -march=i486 -m32 -nostdlib -T hrb.ld -g $(BOOTPACK_SRC) $(NASKFUNC_O) $(HANKAKU_C) -o $(BOOTPACK_HRB)
+	i386-elf-gcc -fno-builtin -march=i486 -m32 -nostdlib -T hrb.ld -g $(BOOTPACK_SRC) $(NASKFUNC_O) $(HANKAKU_C) -o $(BOOTPACK_HRB)
 
 $(SYS_NAME): $(ASMHEAD_BIN) $(BOOTPACK_HRB)
 	cat $(ASMHEAD_BIN) $(BOOTPACK_HRB) > $(SYS_NAME)
