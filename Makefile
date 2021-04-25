@@ -19,10 +19,13 @@ IMAGE_NAME	= $(BUILD_DIR)/$(IPL).img
 SYS_NAME	= $(BUILD_DIR)/$(BASE).sys
 BIN_NAME	= $(BUILD_DIR)/$(IPL).bin
 
-.PHONY: boot
+.PHONY: clean
 
 boot: $(IMAGE_NAME)
 	qemu-system-i386 -drive file=$(IMAGE_NAME),format=raw,if=floppy -boot a
+
+clean:
+	rm -rf $(BUILD_DIR)
 
 $(CONV_HANKAKU_O): $(CONV_HANKAKU)
 	gcc $(CONV_HANKAKU) -o $(CONV_HANKAKU_O)
