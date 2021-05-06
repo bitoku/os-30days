@@ -8,9 +8,18 @@ NASKFUNC_O	= $(BUILD_DIR)/$(NASKFUNC).o
 IPL_NAME	= $(IPL).nas
 ASMHEAD_NAS = $(ASMHEAD).nas
 BOOTPACK	= bootpack
+GRAPHIC		= graphic
+GRAPHIC_C	= $(GRAPHIC).c
+GRAPHIC_O	= $(BUILD_DIR)/$(GRAPHIC).o
+DSCTBL		= dsctbl
+DSCTBL_C	= $(DSCTBL).c
+DSCTBL_O	= $(BUILD_DIR)/$(DSCTBL).o
 HANKAKU		= hankaku.txt
-CONV_HANKAKU	= convHankaku.c
-BOOTPACK_SRC	= $(BOOTPACK).c
+HANKAKU_O	= $(BUILD_DIR)/hankaku.o
+CONV_HANKAKU	= convHankaku
+CONV_HANKAKU_C	= $(CONV_HANKAKU).c
+BOOTPACK_C	= $(BOOTPACK).c
+BOOTPACK_O	= $(BUILD_DIR)/$(BOOTPACK).o
 CONV_HANKAKU_O	= $(BUILD_DIR)/$(CONV_HANKAKU).o
 HANKAKU_C		= $(BUILD_DIR)/$(HANKAKU).c
 BOOTPACK_HRB	= $(BUILD_DIR)/$(BOOTPACK).hrb
@@ -27,8 +36,8 @@ boot: $(IMAGE_NAME)
 clean:
 	rm -rf $(BUILD_DIR)
 
-$(CONV_HANKAKU_O): $(CONV_HANKAKU)
-	gcc $(CONV_HANKAKU) -o $(CONV_HANKAKU_O)
+$(CONV_HANKAKU_O): $(CONV_HANKAKU_C)
+	gcc $(CONV_HANKAKU_C) -o $(CONV_HANKAKU_O)
 
 $(HANKAKU_C): $(CONV_HANKAKU_O) $(HANKAKU)
 	./$(CONV_HANKAKU_O) $(HANKAKU) $(HANKAKU_C)
@@ -45,8 +54,14 @@ $(ASMHEAD_BIN): $(ASMHEAD_NAS) $(BUILD_DIR)
 $(NASKFUNC_O): $(NASKFUNC_NAS)
 	nasm -g -f elf $(NASKFUNC_NAS) -o $(NASKFUNC_O)
 
-$(BOOTPACK_HRB): $(BOOTPACK_SRC) $(HANKAKU_C) $(NASKFUNC_O)
-	i386-elf-gcc -fno-builtin -march=i486 -m32 -nostdlib -T hrb.ld -g $(BOOTPACK_SRC) $(NASKFUNC_O) $(HANKAKU_C) -o $(BOOTPACK_HRB)
+$(BOOTPACK_HRB): $(BOOTPACK_O) $(NASKFUNC_O) $(GRAPHIC_O) $(DSCTBL_O) $(HANKAKU_O)
+	i386-elf-gcc -fno-builtin -march=i486 -m32 -nostdlib -T hrb.ld -g $(BOOTPACK_O) $(GRAPHIC_O) $(DSCTBL_O) $(NASKFUNC_O) $(HANKAKU_O) -o $(BOOTPACK_HRB)
+
+$(BUILD_DIR)/%.o: %.c
+	i386-elf-gcc -fno-builtin -march=i486 -m32 -nostdlib -c $*.c -o $@
+
+$(HANKAKU_O): $(HANKAKU_C)
+	i386-elf-gcc -fno-builtin -march=i486 -m32 -nostdlib -c $(HANKAKU_C) -o $(HANKAKU_O)
 
 $(SYS_NAME): $(ASMHEAD_BIN) $(BOOTPACK_HRB)
 	cat $(ASMHEAD_BIN) $(BOOTPACK_HRB) > $(SYS_NAME)
