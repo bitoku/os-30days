@@ -14,6 +14,9 @@ GRAPHIC_O	= $(BUILD_DIR)/$(GRAPHIC).o
 DSCTBL		= dsctbl
 DSCTBL_C	= $(DSCTBL).c
 DSCTBL_O	= $(BUILD_DIR)/$(DSCTBL).o
+INT			= int
+INT_C		= $(INT).c
+INT_O		= $(BUILD_DIR)/$(INT).o
 HANKAKU		= hankaku.txt
 HANKAKU_O	= $(BUILD_DIR)/hankaku.o
 CONV_HANKAKU	= convHankaku
@@ -54,8 +57,8 @@ $(ASMHEAD_BIN): $(ASMHEAD_NAS) $(BUILD_DIR)
 $(NASKFUNC_O): $(NASKFUNC_NAS)
 	nasm -g -f elf $(NASKFUNC_NAS) -o $(NASKFUNC_O)
 
-$(BOOTPACK_HRB): $(BOOTPACK_O) $(NASKFUNC_O) $(GRAPHIC_O) $(DSCTBL_O) $(HANKAKU_O)
-	i386-elf-gcc -fno-builtin -march=i486 -m32 -nostdlib -T hrb.ld -g $(BOOTPACK_O) $(GRAPHIC_O) $(DSCTBL_O) $(NASKFUNC_O) $(HANKAKU_O) -o $(BOOTPACK_HRB)
+$(BOOTPACK_HRB): $(BOOTPACK_O) $(NASKFUNC_O) $(GRAPHIC_O) $(DSCTBL_O) $(HANKAKU_O) $(INT_O)
+	i386-elf-gcc -fno-builtin -march=i486 -m32 -nostdlib -T hrb.ld -g $(BOOTPACK_O) $(GRAPHIC_O) $(DSCTBL_O) $(NASKFUNC_O) $(HANKAKU_O) $(INT_O) -o $(BOOTPACK_HRB)
 
 $(BUILD_DIR)/%.o: %.c
 	i386-elf-gcc -fno-builtin -march=i486 -m32 -nostdlib -c $*.c -o $@
