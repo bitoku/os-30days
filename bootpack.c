@@ -90,7 +90,7 @@ void HariMain(void)
 {
     struct BOOTINFO *binfo = (struct BOOTINFO *) 0x0ff0;
     extern char hankaku[4096];
-    char s[256], mcursor[256], keybuf[32];
+    char s[256], mcursor[256], keybuf[32], mousebuf[128];
     int mx, my, i;
 
     init_gdtidt();
@@ -114,18 +114,28 @@ void HariMain(void)
 
     enable_mouse();
 
-    fifo8_init(&keyinfo, 32, keybuf);
+    fifo8_init(&keyfifo, 32, keybuf);
+    fifo8_init(&mousefifo, 128, mousebuf);
 
     for (;;) {
         io_cli();
-        if (fifo8_status(&keyinfo) == 0) {
+        if (fifo8_status(&keyfifo) + fifo8_status(&mousefifo) == 0) {
             io_stihlt();
         } else {
-            i = fifo8_get(&keyinfo);
-            io_sti();
-            sprintf(s, "%x", i);
-            boxfill8(binfo->vram, binfo->scrnx, COL8_008484, 0, 16, 15, 31);
-            putfonts8_asc(binfo->vram, binfo->scrnx, 0, 16, COL8_FFFFFF, s);
+            if (fifo8_status(&keyfifo) != 0) {
+                i = fifo8_get(&keyfifo);
+                io_sti();
+                sprintf(s, "%x", i);
+                boxfill8(binfo->vram, binfo->scrnx, COL8_008484, 0, 16, 15, 31);
+                putfonts8_asc(binfo->vram, binfo->scrnx, 0, 16, COL8_FFFFFF, s);
+            }
+            if (fifo8_status(&mousefifo) != 0) {
+                i = fifo8_get(&mousefifo);
+                io_sti();
+                sprintf(s, "%x", i);
+                boxfill8(binfo->vram, binfo->scrnx, COL8_008484, 32, 16, 47, 31);
+                putfonts8_asc(binfo->vram, binfo->scrnx, 32, 16, COL8_FFFFFF, s);
+            }
         }
     }
 }

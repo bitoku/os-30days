@@ -119,7 +119,8 @@ struct FIFO8 {
     int p, q, size, free, flags;
 };
 
-struct FIFO8 keyinfo;
+struct FIFO8 keyfifo;
+struct FIFO8 mousefifo;
 
 void fifo8_init(struct FIFO8 *fifo, int size, char *buf);
 int fifo8_put(struct FIFO8 *fifo, char data);
