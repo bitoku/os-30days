@@ -1,3 +1,9 @@
+#include <stdarg.h>
+
+int dec2asc (char *str, int dec);
+int hex2asc (char *str, int dec);
+void sprintf (char *str, char *fmt, ...);
+
 // asmhead.nas
 struct BOOTINFO {
     char cyls, leds, vmode, reserve;
@@ -11,6 +17,8 @@ struct BOOTINFO {
 void io_hlt(void);
 void io_cli(void);
 void io_sti(void);
+void io_stihlt(void);
+int io_in8(int port);
 void io_out8(int port, int data);
 int io_load_eflags(void);
 void io_store_eflags(int eflags);
@@ -92,3 +100,10 @@ void inthandler2c(int *esp);
 #define PIC1_ICW2 0x00a1
 #define PIC1_ICW3 0x00a1
 #define PIC1_ICW4 0x00a1
+#define PORT_KEYDAT 0x0060
+
+struct KEYBUF {
+    char data, flag;
+};
+
+struct KEYBUF keybuf;
