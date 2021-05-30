@@ -61,6 +61,31 @@ void sprintf (char *str, char *fmt, ...) {
     va_end (list);
 }
 
+void wait_KBC_sendready(void) {
+    for (;;) {
+        if ((io_in8(PORT_KEYSTA) & KEYSTA_SEND_NOTREADY) == 0) {
+            break;
+        }
+    }
+    return;
+}
+
+void init_keyboard(void) {
+    wait_KBC_sendready();
+    io_out8(PORT_KEYCMD, KEYCMD_WRITE_MODE);
+    wait_KBC_sendready();
+    io_out8(PORT_KEYDAT, KBC_MODE);
+    return;
+}
+
+void enable_mouse(void) {
+    wait_KBC_sendready();
+    io_out8(PORT_KEYCMD, KEYCMD_SENDTO_MOUSE);
+    wait_KBC_sendready();
+    io_out8(PORT_KEYDAT, MOUSECMD_ENABLE);
+    return; // うまくいくとACK(0xfa)が送信される
+}
+
 void HariMain(void)
 {
     struct BOOTINFO *binfo = (struct BOOTINFO *) 0x0ff0;
@@ -71,6 +96,8 @@ void HariMain(void)
     init_gdtidt();
     init_pic();
     io_sti();
+
+    init_keyboard();
 
     init_palette();
     init_screen8(binfo->vram, binfo->scrnx, binfo->scrny);
@@ -84,6 +111,8 @@ void HariMain(void)
 
     io_out8(PIC0_IMR, 0xf9);  // PIC1とキーボードを許可
     io_out8(PIC1_IMR, 0xef);  // マウスを許可
+
+    enable_mouse();
 
     fifo8_init(&keyinfo, 32, keybuf);
 
