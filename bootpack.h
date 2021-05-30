@@ -102,9 +102,18 @@ void inthandler2c(int *esp);
 #define PIC1_ICW4 0x00a1
 #define PORT_KEYDAT 0x0060
 
-struct KEYBUF {
-    char data[32];
-    int next_r, next_w, len;
+// fifo.c
+
+#define FLAGS_OVERRUN 0x0001
+
+struct FIFO8 {
+    char *buf;
+    int p, q, size, free, flags;
 };
 
-struct KEYBUF keybuf;
+struct FIFO8 keyinfo;
+
+void fifo8_init(struct FIFO8 *fifo, int size, char *buf);
+int fifo8_put(struct FIFO8 *fifo, char data);
+int fifo8_get(struct FIFO8 *fifo);
+int fifo8_status(struct FIFO8 *fifo);
