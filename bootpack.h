@@ -104,7 +104,7 @@ void inthandler2c(int *esp);
 
 struct KEYBUF {
     char data[32];
-    int next;
+    int next_r, next_w, len;
 };
 
 struct KEYBUF keybuf;
