@@ -103,7 +103,8 @@ void inthandler2c(int *esp);
 #define PORT_KEYDAT 0x0060
 
 struct KEYBUF {
-    char data, flag;
+    char data[32];
+    int next;
 };
 
 struct KEYBUF keybuf;
