@@ -35,7 +35,7 @@ int hex2asc (char *str, int dec) { //10で割れた回数（つまり桁数）�
 
 void sprintf (char *str, char *fmt, ...) {
     va_list list;
-    int i, len;
+    int len;
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wvarargs"
     va_start (list, 2);
@@ -89,7 +89,6 @@ void enable_mouse(void) {
 void HariMain(void)
 {
     struct BOOTINFO *binfo = (struct BOOTINFO *) 0x0ff0;
-    extern char hankaku[4096];
     char s[256], mcursor[256], keybuf[32], mousebuf[128];
     int mx, my, i;
 
