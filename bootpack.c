@@ -1,23 +1,31 @@
 #include "bootpack.h"
 
 //10進数からASCIIコードに変換
-int dec2asc (char *str, unsigned int dec) {
+int dec2asc (char *str, int dec) {
     int len = 0, len_buf; //桁数
     int buf[10];
+    int minus = 0;
+    if (dec < 0) {
+        minus = 1;
+        dec = -dec;
+    }
     while (1) { //10で割れた回数（つまり桁数）をlenに、各桁をbufに格納
-        buf[len++] = dec % 10;
+        buf[len++] = dec % 10 + 0x30;
         if (dec < 10) break;
         dec /= 10;
     }
+    if (minus) {
+        buf[len++] = '-';
+    }
     len_buf = len;
     while (len) {
-        *(str++) = buf[--len] + 0x30;
+        *(str++) = buf[--len];
     }
     return len_buf;
 }
 
 //16進数からASCIIコードに変換
-int hex2asc (char *str, unsigned int dec) { //10で割れた回数（つまり桁数）をlenに、各桁をbufに格納
+int hex2asc (char *str, int dec) { //10で割れた回数（つまり桁数）をlenに、各桁をbufに格納
     int len = 0, len_buf; //桁数
     int buf[10];
     while (1) {
@@ -46,10 +54,10 @@ void sprintf (char *str, char *fmt, ...) {
             fmt++;
             switch(*fmt){
                 case 'd':
-                    len = dec2asc(str, va_arg (list, unsigned int));
+                    len = dec2asc(str, va_arg (list, int));
                     break;
                 case 'x':
-                    len = hex2asc(str, va_arg (list, unsigned int));
+                    len = hex2asc(str, va_arg (list, int));
                     break;
             }
             str += len; fmt++;
@@ -63,6 +71,7 @@ void sprintf (char *str, char *fmt, ...) {
 
 struct MOUSE_DEC {
     unsigned char buf[3], phase;
+    int x, y, btn;
 };
 
 void wait_KBC_sendready(void) {
@@ -99,8 +108,10 @@ int mouse_decode(struct MOUSE_DEC *mdec, unsigned char dat) {
         return 0;
     }
     if (mdec->phase == 1) {
-        mdec->buf[0] = dat;
-        mdec->phase = 2;
+        if ((dat & 0xc8) == 0x08) {
+            mdec->buf[0] = dat;
+            mdec->phase = 2;
+        }
         return 0;
     }
     if (mdec->phase == 2) {
@@ -111,6 +122,16 @@ int mouse_decode(struct MOUSE_DEC *mdec, unsigned char dat) {
     if (mdec->phase == 3) {
         mdec->buf[2] = dat;
         mdec->phase = 1;
+        mdec->btn = mdec->buf[0] & 0x07;
+        mdec->x = mdec->buf[1];
+        mdec->y = mdec->buf[2];
+        if ((mdec->buf[0] & 0x10) != 0) {
+            mdec->x |= 0xffffff00;
+        }
+        if ((mdec->buf[0] & 0x20) != 0) {
+            mdec->y |= 0xffffff00;
+        }
+        mdec->y = - mdec->y; // マウスではy方向の符号が画面と反対
         return 1;
     }
     return -1; // ここに来ることはない
@@ -162,8 +183,17 @@ void HariMain(void)
                 i = fifo8_get(&mousefifo);
                 io_sti();
                 if (mouse_decode(&mdec, i) != 0) {
-                    sprintf(s, "%x %x %x", mdec.buf[0], mdec.buf[1], mdec.buf[2]);
-                    boxfill8(binfo->vram, binfo->scrnx, COL8_008484, 32, 16, 32 + 8 * 8 - 1, 31);
+                    sprintf(s, "[lcr] %d %d", mdec.x, mdec.y);
+                    if ((mdec.btn & 0x01) != 0) {
+                        s[1] = 'L';
+                    }
+                    if ((mdec.btn & 0x02) != 0) {
+                        s[3] = 'R';
+                    }
+                    if ((mdec.btn & 0x04) != 0) {
+                        s[2] = 'C';
+                    }
+                    boxfill8(binfo->vram, binfo->scrnx, COL8_008484, 32, 16, 240, 31);
                     putfonts8_asc(binfo->vram, binfo->scrnx, 32, 16, COL8_FFFFFF, s);
                 }
             }

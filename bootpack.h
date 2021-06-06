@@ -1,7 +1,7 @@
 #include <stdarg.h>
 
-int dec2asc (char *str, unsigned int dec);
-int hex2asc (char *str, unsigned int dec);
+int dec2asc (char *str, int dec);
+int hex2asc (char *str, int dec);
 void sprintf (char *str, char *fmt, ...);
 
 // asmhead.nas
