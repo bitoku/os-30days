@@ -1,7 +1,7 @@
 #include "bootpack.h"
 
 //10進数からASCIIコードに変換
-int dec2asc (char *str, int dec) {
+int dec2asc (char *str, unsigned int dec) {
     int len = 0, len_buf; //桁数
     int buf[10];
     while (1) { //10で割れた回数（つまり桁数）をlenに、各桁をbufに格納
@@ -17,7 +17,7 @@ int dec2asc (char *str, int dec) {
 }
 
 //16進数からASCIIコードに変換
-int hex2asc (char *str, int dec) { //10で割れた回数（つまり桁数）をlenに、各桁をbufに格納
+int hex2asc (char *str, unsigned int dec) { //10で割れた回数（つまり桁数）をlenに、各桁をbufに格納
     int len = 0, len_buf; //桁数
     int buf[10];
     while (1) {
@@ -28,7 +28,7 @@ int hex2asc (char *str, int dec) { //10で割れた回数（つまり桁数）�
     len_buf = len;
     while (len) {
         len --;
-        *(str++) = (buf[len]<10)?(buf[len] + 0x30):(buf[len] - 9 + 0x60);
+        *(str++) = (buf[len]<10)?(buf[len] + 0x30):(buf[len] - 10 + 0x61);
     }
     return len_buf;
 }
@@ -46,10 +46,10 @@ void sprintf (char *str, char *fmt, ...) {
             fmt++;
             switch(*fmt){
                 case 'd':
-                    len = dec2asc(str, va_arg (list, int));
+                    len = dec2asc(str, va_arg (list, unsigned int));
                     break;
                 case 'x':
-                    len = hex2asc(str, va_arg (list, int));
+                    len = hex2asc(str, va_arg (list, unsigned int));
                     break;
             }
             str += len; fmt++;
@@ -89,12 +89,18 @@ void enable_mouse(void) {
 void HariMain(void)
 {
     struct BOOTINFO *binfo = (struct BOOTINFO *) 0x0ff0;
-    char s[256], mcursor[256], keybuf[32], mousebuf[128];
+    char s[256];
+    unsigned char mcursor[256], keybuf[32], mousebuf[128];
     int mx, my, i;
+    char mouse_dbuf[3], mouse_phase;
 
     init_gdtidt();
     init_pic();
     io_sti();
+    fifo8_init(&keyfifo, 32, keybuf);
+    fifo8_init(&mousefifo, 128, mousebuf);
+    io_out8(PIC0_IMR, 0xf9);  // PIC1とキーボードを許可
+    io_out8(PIC1_IMR, 0xef);  // マウスを許可
 
     init_keyboard();
 
@@ -108,13 +114,8 @@ void HariMain(void)
     sprintf(s, "(%d, %d)", mx, my);
     putfonts8_asc(binfo->vram, binfo->scrnx, 0, 0, COL8_FFFFFF, s);
 
-    io_out8(PIC0_IMR, 0xf9);  // PIC1とキーボードを許可
-    io_out8(PIC1_IMR, 0xef);  // マウスを許可
-
     enable_mouse();
-
-    fifo8_init(&keyfifo, 32, keybuf);
-    fifo8_init(&mousefifo, 128, mousebuf);
+    mouse_phase = 0;
 
     for (;;) {
         io_cli();
@@ -131,9 +132,24 @@ void HariMain(void)
             if (fifo8_status(&mousefifo) != 0) {
                 i = fifo8_get(&mousefifo);
                 io_sti();
-                sprintf(s, "%x", i);
-                boxfill8(binfo->vram, binfo->scrnx, COL8_008484, 32, 16, 47, 31);
-                putfonts8_asc(binfo->vram, binfo->scrnx, 32, 16, COL8_FFFFFF, s);
+                if (mouse_phase == 0) {
+                    if (i == 0xfa) {
+                        mouse_phase = 1;
+                    }
+                } else if (mouse_phase == 1) {
+                    mouse_dbuf[0] = i;
+                    mouse_phase = 2;
+                } else if (mouse_phase == 2) {
+                    mouse_dbuf[1] = i;
+                    mouse_phase = 3;
+                } else if (mouse_phase == 3) {
+                    mouse_dbuf[2] = i;
+                    mouse_phase = 1;
+                    // データが3バイト揃ったら表示
+                    sprintf(s, "%x %x %x", mouse_dbuf[0], mouse_dbuf[1], mouse_dbuf[2]);
+                    boxfill8(binfo->vram, binfo->scrnx, COL8_008484, 32, 16, 32 + 8 * 8 - 1, 31);
+                    putfonts8_asc(binfo->vram, binfo->scrnx, 32, 16, COL8_FFFFFF, s);
+                }
             }
         }
     }

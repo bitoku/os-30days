@@ -1,6 +1,6 @@
 #include "bootpack.h"
 
-void fifo8_init(struct FIFO8 *fifo, int size, char *buf) {
+void fifo8_init(struct FIFO8 *fifo, int size, unsigned char *buf) {
     fifo->size = size;
     fifo->buf = buf;
     fifo->free = size;
@@ -10,7 +10,7 @@ void fifo8_init(struct FIFO8 *fifo, int size, char *buf) {
     return;
 }
 
-int fifo8_put(struct FIFO8 *fifo, char data) {
+int fifo8_put(struct FIFO8 *fifo, unsigned char data) {
     if (fifo->free == 0) {
         // overrun
         fifo->flags |= FLAGS_OVERRUN;

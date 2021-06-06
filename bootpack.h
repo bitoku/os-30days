@@ -1,14 +1,14 @@
 #include <stdarg.h>
 
-int dec2asc (char *str, int dec);
-int hex2asc (char *str, int dec);
+int dec2asc (char *str, unsigned int dec);
+int hex2asc (char *str, unsigned int dec);
 void sprintf (char *str, char *fmt, ...);
 
 // asmhead.nas
 struct BOOTINFO {
     char cyls, leds, vmode, reserve;
     short scrnx, scrny;
-    char *vram;
+    unsigned char *vram;
 };
 
 #define ADR_BOOTINFO 0x00000ff0
@@ -31,12 +31,12 @@ void asm_inthandler2c(void);
 // graphic.c
 void init_palette(void);
 void set_palette(int start, int end, unsigned char *rgb);
-void boxfill8(char *vram, int xsize, unsigned char c, int x0, int y0, int x1, int y1);
-void init_screen8(char *vram, int x, int y);
-void putfont8(char *vram, int xsize, int x, int y, char c, char *font);
-void putfonts8_asc(char *vram, int xsize, int x, int y, char c, char *s);
-void init_mouse_cursor8(char *mouse, char bc);
-void putblock8_8(char *vram, int vxsize, int pxsize, int pysize, int px0, int py0, char *buf, int bxsize);
+void boxfill8(unsigned char *vram, int xsize, unsigned char c, int x0, int y0, int x1, int y1);
+void init_screen8(unsigned char *vram, int x, int y);
+void putfont8(unsigned char *vram, int xsize, int x, int y, char c, char *font);
+void putfonts8_asc(unsigned char *vram, int xsize, int x, int y, char c, char *s);
+void init_mouse_cursor8(unsigned char *mouse, char bc);
+void putblock8_8(unsigned char *vram, int vxsize, int pxsize, int pysize, int px0, int py0, unsigned char *buf, int bxsize);
 
 
 #define COL8_000000		0
@@ -115,14 +115,14 @@ void inthandler2c(int *esp);
 #define FLAGS_OVERRUN 0x0001
 
 struct FIFO8 {
-    char *buf;
+    unsigned char *buf;
     int p, q, size, free, flags;
 };
 
 struct FIFO8 keyfifo;
 struct FIFO8 mousefifo;
 
-void fifo8_init(struct FIFO8 *fifo, int size, char *buf);
-int fifo8_put(struct FIFO8 *fifo, char data);
+void fifo8_init(struct FIFO8 *fifo, int size, unsigned char *buf);
+int fifo8_put(struct FIFO8 *fifo, unsigned char data);
 int fifo8_get(struct FIFO8 *fifo);
 int fifo8_status(struct FIFO8 *fifo);
