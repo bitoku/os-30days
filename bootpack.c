@@ -124,8 +124,107 @@ unsigned int memtest(unsigned int start, unsigned int end) {
 
     return i;
 }
-unsigned int memtest_sub(unsigned int start, unsigned int end);
 
+#define MEMMAN_FREES 4090 // 32KB
+#define MEMMAN_ADDR 0x003c0000
+
+struct FREEINFO {
+    unsigned int addr, size;
+};
+
+struct MEMMAN {
+    int frees, maxfrees, lostsize, losts;
+    struct FREEINFO free[MEMMAN_FREES];
+};
+
+void memman_init(struct MEMMAN *man) {
+    man->frees = 0;
+    man->maxfrees = 0;
+    man->lostsize = 0;
+    man->losts = 0;
+    return;
+}
+
+unsigned int memman_total(struct MEMMAN *man) {
+    unsigned int i, t = 0;
+    for (i = 0; i < man->frees; i++) {
+        t += man->free[i].size;
+    }
+    return t;
+}
+
+unsigned int memman_alloc(struct MEMMAN *man, unsigned int size) {
+    unsigned int i, a;
+    for (i = 0; i < man->frees; i++) {
+        if (man->free[i].size >= size) {
+            a = man->free[i].addr;
+            man->free[i].addr += size;
+            man->free[i].size -= size;
+            if (man->free[i].size == 0) {
+                // free[i]がなくなったので前へ詰める
+                man->frees--;
+                for (; i < man->frees; i++) {
+                    man->free[i] = man->free[i+1];
+                }
+            }
+            return a;
+        }
+    }
+    return 0; // 秋なし
+}
+
+int memman_free(struct MEMMAN *man, unsigned int addr, unsigned int size) {
+    int i, j;
+    for (i = 0; i < man->frees; i++) {
+        if (man->free[i].addr > addr) {
+            break;
+        }
+    }
+    if (i > 0) {
+        if (man->free[i - 1].addr + man->free[i - 1].size == addr) {
+            // 前の空き領域にまとめられる
+            man->free[i - 1].size += size;
+            if (i < man->frees) {
+                if (addr + size == man->free[i].addr) {
+                    // 後ろとまとめられる
+                    man->free[i-1].size += man->free[i].size;
+                    man->frees--;
+                    for (; i < man->frees; i++) {
+                        man->free[i] = man->free[i + 1];
+                    }
+                }
+            }
+            return 0;
+        }
+    }
+    // 前とまとめられない場合
+    if (i < man->frees) {
+        if (addr + size == man->free[i].addr) {
+            // 後ろとまとめられる
+            man->free[i].addr = addr;
+            man->free[i].size += size;
+            return 0;
+        }
+    }
+    // 前にも後ろにもまとめられない
+    if (man->frees < MEMMAN_FREES) {
+        // free[i]より後ろを後ろへずらして隙間を作る
+        for (j = man->frees; j > i; j--) {
+            man->free[j] = man->free[j - 1];
+        }
+        man->frees++;
+        if (man->maxfrees < man->frees) {
+            man->maxfrees = man->frees; // 最大値を更新
+        }
+        man->free[i].addr = addr;
+        man->free[i].size = size;
+        return 0;
+    }
+    // 後ろにずらせなかった
+    man->losts++;
+    man->lostsize += size;
+    return -1;
+}
 
 void HariMain(void)
 {
@@ -133,7 +232,9 @@ void HariMain(void)
     char s[256];
     unsigned char mcursor[256], keybuf[32], mousebuf[128];
     int mx, my, i;
+    unsigned int memtotal;
     struct MOUSE_DEC mdec;
+    struct MEMMAN *memman = (struct MEMMAN *) MEMMAN_ADDR;
 
     init_gdtidt();
     init_pic();
@@ -157,8 +258,12 @@ void HariMain(void)
 
     enable_mouse(&mdec);
 
-    i = memtest(0x00400000, 0xbfffffff) / (1024 * 1024);
-    sprintf(s, "memory %dMB", i);
+    memtotal = memtest(0x00400000, 0xbfffffff);
+    memman_init(memman);
+    memman_free(memman, 0x00001000, 0x0009e000);
+    memman_free(memman, 0x00400000, memtotal - 0x00400000);
+
+    sprintf(s, "memory %dMB   free : %dKB", memtotal / (1024 * 1024), memman_total(memman) / 1024);
     putfonts8_asc(binfo->vram, binfo->scrnx, 0, 32, COL8_FFFFFF, s);
 
     for (;;) {
