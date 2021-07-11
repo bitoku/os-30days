@@ -126,3 +126,18 @@ void fifo8_init(struct FIFO8 *fifo, int size, unsigned char *buf);
 int fifo8_put(struct FIFO8 *fifo, unsigned char data);
 int fifo8_get(struct FIFO8 *fifo);
 int fifo8_status(struct FIFO8 *fifo);
+
+// mouse.c
+
+struct MOUSE_DEC {
+    unsigned char buf[3], phase;
+    int x, y, btn;
+};
+
+void enable_mouse(struct MOUSE_DEC *mdec);
+int mouse_decode(struct MOUSE_DEC *mdec, unsigned char dat);
+
+// keyboard.c
+
+void wait_KBC_sendready(void);
+void init_keyboard(void);
