@@ -66,8 +66,20 @@ $(ASMHEAD_BIN): $(ASMHEAD_NAS) $(BUILD_DIR)
 $(NASKFUNC_O): $(NASKFUNC_NAS)
 	nasm -g -f elf $(NASKFUNC_NAS) -o $(NASKFUNC_O)
 
-$(BOOTPACK_HRB): $(BOOTPACK_O) $(NASKFUNC_O) $(GRAPHIC_O) $(DSCTBL_O) $(HANKAKU_O) $(INT_O) $(FIFO_O) $(KEYBOARD_O) $(MOUSE_O) build/memory.o
-	i386-elf-gcc -fno-builtin -march=i486 -m32 -nostdlib -T hrb.ld -g $(BOOTPACK_O) $(GRAPHIC_O) $(DSCTBL_O) $(NASKFUNC_O) $(HANKAKU_O) $(MOUSE_O) $(KEYBOARD_O) $(INT_O) $(FIFO_O) build/memory.o -o $(BOOTPACK_HRB)
+$(BOOTPACK_HRB): $(BOOTPACK_O) $(NASKFUNC_O) $(GRAPHIC_O) $(DSCTBL_O) $(HANKAKU_O) $(INT_O) $(FIFO_O) $(KEYBOARD_O) $(MOUSE_O) build/memory.o build/sheet.o
+	i386-elf-gcc -fno-builtin -march=i486 -m32 -nostdlib -T hrb.ld -g \
+		$(BOOTPACK_O) \
+		$(GRAPHIC_O) \
+		$(DSCTBL_O) \
+		$(NASKFUNC_O) \
+		$(HANKAKU_O) \
+		$(MOUSE_O) \
+		$(KEYBOARD_O) \
+		$(INT_O) \
+		$(FIFO_O) \
+		build/memory.o \
+		build/sheet.o \
+		-o $(BOOTPACK_HRB)
 
 $(BUILD_DIR)/%.o: %.c
 	i386-elf-gcc -fno-builtin -march=i486 -m32 -nostdlib -c $*.c -o $@
